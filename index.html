@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip n Fortune</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            background-color: #34495e;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #f1c40f;
+        }
+
+        .balance-container {
+            background-color: #2c3e50;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-label {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .balance {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2ecc71;
+            margin: 5px 0;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #bdc3c7;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #2980b9;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #2980b9;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .coin-container {
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .coin {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease-in;
+        }
+
+        .coin.flip {
+            animation: flip 1s forwards;
+        }
+
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            backface-visibility: hidden;
+            background: linear-gradient(45deg, #f1c40f, #f39c12);
+            border: 4px solid #e67e22;
+        }
+
+        .heads {
+            transform: rotateY(0deg);
+        }
+
+        .tails {
+            transform: rotateY(180deg);
+        }
+
+        .result {
+            font-size: 24px;
+            height: 30px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .win {
+            color: #2ecc71;
+        }
+
+        .lose {
+            color: #e74c3c;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: #34495e;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .modal h2 {
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .stats-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .stats-table th, .stats-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #3c546c;
+        }
+
+        .stats-table th {
+            color: #f1c40f;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 15px;
+            background-color: #e74c3c;
+            box-shadow: 0 4px 0 #c0392b;
+        }
+
+        .modal button:hover {
+            background-color: #c0392b;
+        }
+
+        @keyframes flip {
+            0% {
+                transform: rotateY(0);
+            }
+            100% {
+                transform: rotateY(720deg);
+            }
+        }
+
+        .flash {
+            animation: flash-animation 0.5s;
+        }
+
+        @keyframes flash-animation {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .balance {
+                font-size: 30px;
+            }
+            
+            .coin {
+                width: 60px;
+                height: 60px;
+            }
+
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Flip n Fortune</h1>
+            <p>Flip the coin and test your luck!</p>
+        </div>
+        
+        <div class="balance-container">
+            <div class="balance-label">Your Balance</div>
+            <div class="balance" id="balance">$100</div>
+            <div class="stats-container">
+                <div>High Score: $<span id="high-score">100</span></div>
+                <div>Total Flips: <span id="total-flips">0</span></div>
+            </div>
+        </div>
+        
+        <div class="coin-container">
+            <div class="coin" id="coin">
+                <div class="coin-face heads">H</div>
+                <div class="coin-face tails">T</div>
+            </div>
+        </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="buttons">
+            <button id="flip-once">Flip Once</button>
+            <button id="flip-three">Flip 3x</button>
+            <button id="flip-ten">Flip 10x</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="game-over-modal">
+        <div class="modal-content">
+            <h2>Game Over!</h2>
+            <p>You've lost all your money.</p>
+            <table class="stats-table">
+                <tr>
+                    <th>High Score</th>
+                    <th>Games Played</th>
+                    <th>Total Flips</th>
+                </tr>
+                <tr>
+                    <td id="final-high-score">$100</td>
+                    <td id="games-played">1</td>
+                    <td id="final-total-flips">0</td>
+                </tr>
+            </table>
+            <button id="reset-game">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            let gameData = loadGameData();
+            let balance = gameData.currentBalance;
+            let totalFlips = gameData.totalFlips;
+            let highScore = gameData.highScore;
+            let gamesPlayed = gameData.gamesPlayed;
+            let isFlipping = false;
+            
+          
+            const balanceElement = document.getElementById('balance');
+            const highScoreElement = document.getElementById('high-score');
+            const totalFlipsElement = document.getElementById('total-flips');
+            const finalHighScoreElement = document.getElementById('final-high-score');
+            const gamesPlayedElement = document.getElementById('games-played');
+            const finalTotalFlipsElement = document.getElementById('final-total-flips');
+            const coinElement = document.getElementById('coin');
+            const resultElement = document.getElementById('result');
+            const flipOnceButton = document.getElementById('flip-once');
+            const flipThreeButton = document.getElementById('flip-three');
+            const flipTenButton = document.getElementById('flip-ten');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const resetGameButton = document.getElementById('reset-game');
+            
+            
+            updateBalance();
+            updateStats();
+            
+            
+            flipOnceButton.addEventListener('click', () => flipCoin(1));
+            flipThreeButton.addEventListener('click', () => flipCoin(3));
+            flipTenButton.addEventListener('click', () => flipCoin(10));
+            resetGameButton.addEventListener('click', resetGame);
+            
+            
+            function loadGameData() {
+                const defaultData = {
+                    currentBalance: 100,
+                    highScore: 100,
+                    totalFlips: 0,
+                    gamesPlayed: 0
+                };
+                
+                const savedData = localStorage.getItem('flipNFortuneData');
+                if (!savedData) {
+                    return defaultData;
+                }
+                
+                try {
+                    return JSON.parse(savedData);
+                } catch (e) {
+                    return defaultData;
+                }
+            }
+            
+            
+            function saveGameData() {
+                const data = {
+                    currentBalance: balance,
+                    highScore: highScore,
+                    totalFlips: totalFlips,
+                    gamesPlayed: gamesPlayed
+                };
+                
+                localStorage.setItem('flipNFortuneData', JSON.stringify(data));
+            }
+            
+          
+            function flipCoin(times) {
+                if (isFlipping) return;
+                
+                isFlipping = true;
+                disableButtons(true);
+                
+                let flipsCompleted = 0;
+                let intervalId;
+                
+                function doFlip() {
+                    coinElement.classList.remove('flip');
+                  
+                    void coinElement.offsetWidth;
+                    
+                    
+                    const isHeads = Math.random() < 0.5;
+                    
+                    coinElement.classList.add('flip');
+                                     
+                    totalFlips++;                    
+                    
+                    setTimeout(() => {
+                        
+                        if (isHeads) {
+                            let gain = Math.floor(balance * 0.9);
+                            balance += gain;
+                            resultElement.textContent = `Heads! +$${gain}`;
+                            resultElement.className = 'result win';
+                        } else {
+                            let loss = Math.floor(balance * 0.5);
+                            balance -= loss;
+                            resultElement.textContent = `Tails! -$${loss}`;
+                            resultElement.className = 'result lose';
+                        }
+                        
+                      
+                        if (balance > highScore) {
+                            highScore = balance;
+                        }
+                        
+                        
+                        updateBalance();
+                        updateStats();
+                        saveGameData();
+                        
+                        flipsCompleted++;
+                        
+                        
+                        if (flipsCompleted >= times || balance < 1) {
+                            clearInterval(intervalId);
+                            isFlipping = false;
+                            
+                            // Check for game over
+                            if (balance < 1) {
+                                gameOver();
+                            } else {
+                                disableButtons(false);
+                            }
+                        }
+                    }, 1000);
+                }
+                
+                
+                doFlip();
+                
+                
+                if (times > 1) {
+                    intervalId = setInterval(doFlip, 1500);
+                }
+            }
+            
+            
+            function updateBalance() {
+                balanceElement.textContent = `$${Math.floor(balance)}`;
+                balanceElement.parentElement.classList.add('flash');
+                setTimeout(() => {
+                    balanceElement.parentElement.classList.remove('flash');
+                }, 500);
+            }
+            
+            
+            function updateStats() {
+                highScoreElement.textContent = highScore;
+                totalFlipsElement.textContent = totalFlips;
+                finalHighScoreElement.textContent = `$${highScore}`;
+                gamesPlayedElement.textContent = gamesPlayed;
+                finalTotalFlipsElement.textContent = totalFlips;
+            }
+            
+            
+            function disableButtons(disabled) {
+                flipOnceButton.disabled = disabled;
+                flipThreeButton.disabled = disabled;
+                flipTenButton.disabled = disabled;
+            }
+            
+            
+            function gameOver() {
+                gamesPlayed++;
+                updateStats();
+                saveGameData();
+                gameOverModal.classList.add('show');
+            }
+            
+          
+            function resetGame() {
+                balance = 100;
+                updateBalance();
+                resultElement.textContent = '';
+                gameOverModal.classList.remove('show');
+                disableButtons(false);
+                saveGameData();
+            }
+        });
+    </script>
+</body>
+              </html>
