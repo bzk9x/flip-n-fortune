@@ -327,21 +327,19 @@
                     <td id="final-total-flips">0</td>
                 </tr>
             </table>
-            <button id="reset-game">Play Again</button>
+            <button id="reset-game">Start Over</button>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
             let gameData = loadGameData();
             let balance = gameData.currentBalance;
             let totalFlips = gameData.totalFlips;
             let highScore = gameData.highScore;
             let gamesPlayed = gameData.gamesPlayed;
             let isFlipping = false;
-            
-          
+
             const balanceElement = document.getElementById('balance');
             const highScoreElement = document.getElementById('high-score');
             const totalFlipsElement = document.getElementById('total-flips');
@@ -356,17 +354,18 @@
             const gameOverModal = document.getElementById('game-over-modal');
             const resetGameButton = document.getElementById('reset-game');
             
-            
             updateBalance();
             updateStats();
             
-            
+            if (balance < 1) {
+                gameOver();
+            }
+
             flipOnceButton.addEventListener('click', () => flipCoin(1));
             flipThreeButton.addEventListener('click', () => flipCoin(3));
             flipTenButton.addEventListener('click', () => flipCoin(10));
             resetGameButton.addEventListener('click', resetGame);
-            
-            
+
             function loadGameData() {
                 const defaultData = {
                     currentBalance: 100,
@@ -386,8 +385,7 @@
                     return defaultData;
                 }
             }
-            
-            
+
             function saveGameData() {
                 const data = {
                     currentBalance: balance,
@@ -398,8 +396,7 @@
                 
                 localStorage.setItem('flipNFortuneData', JSON.stringify(data));
             }
-            
-          
+
             function flipCoin(times) {
                 if (isFlipping) return;
                 
@@ -411,18 +408,15 @@
                 
                 function doFlip() {
                     coinElement.classList.remove('flip');
-                  
                     void coinElement.offsetWidth;
-                    
-                    
+
                     const isHeads = Math.random() < 0.5;
-                    
+
                     coinElement.classList.add('flip');
-                                     
-                    totalFlips++;                    
-                    
+
+                    totalFlips++;
+
                     setTimeout(() => {
-                        
                         if (isHeads) {
                             let gain = Math.floor(balance * 0.9);
                             balance += gain;
@@ -434,44 +428,39 @@
                             resultElement.textContent = `Tails! -$${loss}`;
                             resultElement.className = 'result lose';
                         }
-                        
-                      
+
                         if (balance > highScore) {
                             highScore = balance;
                         }
-                        
-                        
+
                         updateBalance();
                         updateStats();
                         saveGameData();
                         
                         flipsCompleted++;
-                        
-                        
-                        if (flipsCompleted >= times || balance < 1) {
+
+                        if (balance < 1) {
                             clearInterval(intervalId);
                             isFlipping = false;
-                            
-                            // Check for game over
-                            if (balance < 1) {
-                                gameOver();
-                            } else {
-                                disableButtons(false);
-                            }
+                            gameOver();
+                            return;
+                        }
+
+                        if (flipsCompleted >= times) {
+                            clearInterval(intervalId);
+                            isFlipping = false;
+                            disableButtons(false);
                         }
                     }, 1000);
                 }
-                
-                
+
                 doFlip();
-                
-                
+
                 if (times > 1) {
                     intervalId = setInterval(doFlip, 1500);
                 }
             }
-            
-            
+
             function updateBalance() {
                 balanceElement.textContent = `$${Math.floor(balance)}`;
                 balanceElement.parentElement.classList.add('flash');
@@ -479,8 +468,7 @@
                     balanceElement.parentElement.classList.remove('flash');
                 }, 500);
             }
-            
-            
+
             function updateStats() {
                 highScoreElement.textContent = highScore;
                 totalFlipsElement.textContent = totalFlips;
@@ -488,23 +476,20 @@
                 gamesPlayedElement.textContent = gamesPlayed;
                 finalTotalFlipsElement.textContent = totalFlips;
             }
-            
-            
+
             function disableButtons(disabled) {
                 flipOnceButton.disabled = disabled;
                 flipThreeButton.disabled = disabled;
                 flipTenButton.disabled = disabled;
             }
-            
-            
+
             function gameOver() {
                 gamesPlayed++;
                 updateStats();
                 saveGameData();
                 gameOverModal.classList.add('show');
             }
-            
-          
+
             function resetGame() {
                 balance = 100;
                 updateBalance();
@@ -516,4 +501,4 @@
         });
     </script>
 </body>
-              </html>
+</html>
